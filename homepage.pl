@@ -1,0 +1,83 @@
+:-  module(homepage, [
+		      say_hi/1
+		      ]).
+:- html_meta str(html, ?, ?).
+title_dataflow(se)-->html('dataflöde').
+title_dataflow(en)-->html('Dataflow!').
+
+sumbiter-->
+    {
+            http_session_data(uid(_))
+    },
+    html(
+        \clear_div(center([
+            form([action='submit', method='POST'],
+            [
+                div(
+                [
+                    textarea([   
+                        name='en', 
+                        class='shadow',
+                        placeholdir='yoir message to the world', 
+                        required=true, 
+                        minlength=100, 
+                        rows=20, 
+                        cols=50],''),
+                    textarea([
+                        name='se', 
+                        class='shadow', 
+                        placeholder='meddelande pa svenska', 
+                        required=true, 
+                        messages_in_langlength=100,
+                        rows=20,
+                        cols=50],'')
+                ]),
+                div(input(type='submit',[]))
+            ])
+        ]))
+    ).
+sumbiter --> 
+    html(center(p('not logged in'))).
+
+str(String)-->
+{	
+    getlang(Lang),
+    call(String, Lang, ActualString)
+},
+html(String).
+
+say_hi(_Request) :-
+    getlang(Lang),
+    messages_in_lang(Lang, List_of_messages),
+    http_public_host(_Request, Hostname, Port, [global(true)]),
+    http_session_id(Sid),
+    reply_html_page([
+        title(\homepage:title_dataflow(Lang)),
+        style(type=
+            'text/css', 'a{color:darkcyan;}'+
+            'body{background-color:lightgray;margin:0px;}'+
+            'div{background-color: inherit;color: inherit opacity:100%;}'+
+            '.shadow {'+
+                'webkit-box-shadow: 0 8px 20px -10px black;'+
+                '-moz-box-shadow: 4 8px 20px -10px black;'+
+                'box-shadow: 0 8px 20px -10px black;}')
+    ],[
+    div([
+        class='shadow', 
+        style='background-color:darkseagreen;'+
+              'color: white;'],
+        [
+            \float_div('left', \kth_login('http://localhost:'+Port)),
+            \float_div('right', 
+            [
+                div(\lang_button('se')), 
+                div(\lang_button('en'))
+            ]),
+            \clear_div(center([div(h1(\homepage:title_dataflow(Lang))),
+            div(p('Write some text'))]))
+        ]),
+        \sumbiter,
+        \list(List_of_messages),
+        \footr
+    ]).
+
